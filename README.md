@@ -1,7 +1,6 @@
 # xtbhst: Bootstrap Slope Heterogeneity Test for Panel Data
 
 <!-- badges: start -->
-[![R-CMD-check](https://github.com/merwanroudane/xtbhst/workflows/R-CMD-check/badge.svg)](https://github.com/merwanroudane/xtbhst/actions)
 [![CRAN status](https://www.r-pkg.org/badges/version/xtbhst)](https://CRAN.R-project.org/package=xtbhst)
 <!-- badges: end -->
 
@@ -20,7 +19,6 @@ install.packages("xtbhst")
 
 # Or install development version from GitHub
 # install.packages("devtools")
-devtools::install_github("merwanroudane/xtbhst")
 ```
 
 ## Usage
@@ -117,7 +115,5 @@ https://doi.org/10.1007/s00181-015-0978-z
 GPL (>= 3)
 
 ## Author
-
-Merwan Roudane (merwanroudane920@gmail.com)
 
 R port based on the Stata implementation `xtbhst`, which was modified from `xthst` by Tore Bersvendsen and Jan Ditzen.

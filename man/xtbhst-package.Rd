@@ -76,7 +76,7 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Merwan Roudane \email{merwanroudane920@gmail.com}
+\strong{Maintainer}:  
 
 Other contributors:
 \itemize{

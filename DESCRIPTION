@@ -1,0 +1,32 @@
+Package: xtbhst
+Title: Bootstrap Slope Heterogeneity Test for Panel Data
+Version: 1.0.0
+Authors@R: c(
+    person("Muhammad", "Alkhalaf", 
+           email = "muhammedalkhalaf@gmail.com",
+           role = c("aut", "cre", "cph"),
+           comment = c(ORCID = "0009-0002-2677-9246")),
+    person("Merwan", "Roudane",
+           role = "ctb",
+           comment = "Original Stata implementation"),
+    person("Tore", "Bersvendsen", role = "ctb"),
+    person("Jan", "Ditzen", role = "ctb"))
+Description: Implements the bootstrap slope heterogeneity test for panel data 
+    based on Blomquist and Westerlund (2015) <doi:10.1007/s00181-015-0978-z>.
+    Tests the null hypothesis that slope coefficients are homogeneous across
+    cross-sectional units. Provides both standard and adjusted Delta statistics
+    with bootstrap p-values. Supports partialling out of control variables and
+    cross-sectional averages for dealing with cross-sectional dependence.
+License: GPL-3
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.3
+Depends: R (>= 3.5.0)
+Imports:
+    stats,
+    graphics,
+    grDevices
+Suggests:
+    testthat (>= 3.0.0),
+    plm
+Config/testthat/edition: 3

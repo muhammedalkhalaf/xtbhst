@@ -70,8 +70,8 @@ Efficient inference in a random coefficient regression model.
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://github.com/merwanroudane/xtbhst}
-  \item Report bugs at \url{https://github.com/merwanroudane/xtbhst/issues}
+  \item \url{https://github.com/muhammedalkhalaf/xtbhst}
+  \item Report bugs at \url{https://github.com/muhammedalkhalaf/xtbhst/issues}
 }
 
 }

@@ -110,10 +110,24 @@ homogeneity. Empirical Economics, 48(1), 1191-1204.
 https://doi.org/10.1007/s00181-015-0978-z
 ```
 
+## How to cite
+
+If you use **xtbhst** in your work, please cite the package as:
+
+> Alkhalaf, M.A. (2026). *xtbhst: Bootstrap Slope Heterogeneity Test for
+> Panel Data*. R package version 1.0.2.
+> <https://CRAN.R-project.org/package=xtbhst>.
+> doi:10.32614/CRAN.package.xtbhst
+
+In R, the suggested citation is also available via `citation("xtbhst")`.
+
+The R port is based on the Stata `xthst` command; please also cite the
+original Stata implementation when relevant.
+
 ## License
 
 GPL (>= 3)
 
 ## Author
 
-R port based on the Stata implementation `xtbhst`, which was modified from `xthst` by Tore Bersvendsen and Jan Ditzen.
+R port based on the Stata implementation `xtbhst`, which was adapted from the Stata `xthst` command.

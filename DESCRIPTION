@@ -1,13 +1,12 @@
 Package: xtbhst
 Title: Bootstrap Slope Heterogeneity Test for Panel Data
-Version: 1.0.1
+Version: 1.0.2
 Authors@R: c(
     person("Muhammad", "Alkhalaf", 
            email = "muhammedalkhalaf@gmail.com",
            role = c("aut", "cre", "cph"),
            comment = c(ORCID = "0009-0002-2677-9246")),
-    person("Tore", "Bersvendsen", role = "ctb"),
-    person("Jan", "Ditzen", role = "ctb"))
+    person("Tore", "Bersvendsen", role = "ctb"))
 Description: Implements the bootstrap slope heterogeneity test for panel data 
     based on Blomquist and Westerlund (2015) <doi:10.1007/s00181-015-0978-z>.
     Tests the null hypothesis that slope coefficients are homogeneous across

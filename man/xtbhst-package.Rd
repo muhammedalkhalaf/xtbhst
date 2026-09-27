@@ -81,7 +81,6 @@ Useful links:
 Other contributors:
 \itemize{
   \item Tore Bersvendsen [contributor]
-  \item Jan Ditzen [contributor]
 }
 
 }

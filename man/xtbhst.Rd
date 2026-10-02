@@ -11,6 +11,7 @@ xtbhst(
   time,
   reps = 999L,
   blocklength = NULL,
+  variance = c("bw", "py"),
   partial = NULL,
   csa = NULL,
   csa_lags = 0L,
@@ -32,64 +33,147 @@ identifier variable.}
 \item{reps}{Integer. Number of bootstrap replications (default: 999).}
 
 \item{blocklength}{Integer. Block length for the block bootstrap. If
-\code{NULL} (default), set automatically to \code{floor(2 * T^(1/3))}
-where T is the number of time periods.}
+\code{NULL} (default), set to \code{round(2 * T^(1/3))}, the
+deterministic rule of Blomquist and Westerlund (2016, Section 4.2),
+where \code{T} is the number of time periods in the estimation sample.
+Must lie between 1 and \code{T}.}
 
-\item{partial}{Optional formula specifying variables to be partialled out.
-For example, \code{~ z1 + z2}.}
+\item{variance}{Character. Which unit-specific error variance estimate
+to use in the weights of the weighted fixed-effects estimator and in
+the test statistic. \code{"bw"} (default) is the estimator of
+Blomquist and Westerlund (2016, Section 3.1); \code{"py"} is the
+estimator of Pesaran and Yamagata (2008). See Details.}
+
+\item{partial}{Optional formula specifying variables to be partialled out
+unit by unit. For example, \code{~ z1 + z2}.}
 
 \item{csa}{Optional formula specifying variables for which cross-sectional
-averages should be computed and included. Used to handle cross-sectional
-dependence following Pesaran (2006).}
+averages should be computed and partialled out, in the spirit of
+Pesaran (2006). See Details.}
 
 \item{csa_lags}{Integer. Number of lags of the cross-sectional averages
 to include (default: 0).}
 
-\item{constant}{Logical. If \code{TRUE} (default), include a constant
-(partialled out).}
+\item{constant}{Logical. If \code{TRUE} (default), a unit-specific
+constant is partialled out.}
 
 \item{seed}{Optional integer seed for reproducibility.}
 }
 \value{
 An object of class \code{"xtbhst"} containing:
 \describe{
-\item{delta}{The Delta test statistic.}
-\item{delta_adj}{The adjusted Delta test statistic.}
-\item{pval}{Bootstrap p-value for the Delta statistic.}
-\item{pval_adj}{Bootstrap p-value for the adjusted Delta statistic.}
+\item{S}{The Swamy-type statistic \eqn{S} that is bootstrapped,
+computed with the variance estimator selected by \code{variance}.}
+\item{S_py}{The same statistic computed with the variance estimator
+of Pesaran and Yamagata (2008); it underlies \code{delta} and
+\code{delta_adj}. Equal to \code{S} when \code{variance = "py"}.}
+\item{pval}{Bootstrap p-value: the proportion of bootstrap statistics
+\eqn{S^*} that are at least as large as \eqn{S}.}
+\item{delta}{The Delta statistic of Pesaran and Yamagata (2008),
+computed from \code{S_py} whatever the value of \code{variance}.}
+\item{delta_adj}{The adjusted Delta statistic of Pesaran and
+Yamagata (2008), or \code{NA} if \eqn{T - K - 1 \le 0}.}
+\item{pval_delta_asy}{Asymptotic (standard normal, upper tail)
+p-value of \code{delta}.}
+\item{pval_delta_adj_asy}{Asymptotic (standard normal, upper tail)
+p-value of \code{delta_adj}.}
+\item{S_stars}{Vector of bootstrap statistics \eqn{S^*}.}
+\item{delta_stars}{\code{S_stars} on the Delta scale, that is
+\code{sqrt(N) (S_stars/N - K)/sqrt(2K)}.}
 \item{blocklength}{The block length used in the bootstrap.}
 \item{reps}{Number of bootstrap replications.}
+\item{variance}{The variance estimator used (\code{"bw"} or
+\code{"py"}).}
 \item{N}{Number of cross-sectional units.}
-\item{T}{Number of time periods.}
+\item{T}{Number of time periods in the estimation sample (after
+dropping the first \code{csa_lags} periods).}
 \item{K}{Number of regressors.}
+\item{Kpartial}{Number of partialled-out variables (including the
+constant).}
+\item{sigma2}{Vector of unit-specific error variance estimates.}
 \item{beta_i}{Matrix of individual slope estimates (N x K).}
-\item{beta_fe}{Vector of weighted fixed effects (pooled) estimates.}
-\item{delta_stars}{Vector of bootstrap Delta statistics.}
-\item{delta_adj_stars}{Vector of bootstrap adjusted Delta statistics.}
+\item{beta_fe}{Vector of weighted fixed-effects (pooled) estimates.}
+\item{n_dropped}{Number of rows of \code{data} dropped because of
+missing values.}
 \item{call}{The matched call.}
 }
 }
 \description{
-Implements the bootstrap slope heterogeneity test based on
-Blomquist and Westerlund (2015). Tests the null hypothesis that slope
-coefficients are homogeneous across cross-sectional units.
+Implements the panel bootstrap test of slope homogeneity of
+Blomquist and Westerlund (2016). The null hypothesis is that the slope
+coefficients are equal across all cross-sectional units.
 }
 \details{
-The test is based on the following Delta statistic:
-\deqn{\Delta = \sqrt{N} \frac{\tilde{S}/N - K}{\sqrt{2K}}}
-where \eqn{\tilde{S}} is a weighted sum of squared deviations of
-individual slope estimates from the weighted pooled estimate.
+Let \eqn{\hat\beta_i} be the least-squares estimate of the slopes of
+unit \eqn{i} after partialling out the constant (and any further
+variables given in \code{partial} and \code{csa}), let \eqn{M} denote
+the corresponding projection matrix, and let
+\deqn{\hat\beta_{WFE} = \left(\sum_{i=1}^N \frac{x_i' M x_i}{\hat\sigma_i^2}\right)^{-1}
+  \sum_{i=1}^N \frac{x_i' M y_i}{\hat\sigma_i^2}}{
+  b_WFE = (sum_i x_i' M x_i / s_i^2)^-1 sum_i x_i' M y_i / s_i^2}
+be the weighted fixed-effects estimator. The test statistic of
+Blomquist and Westerlund (2016, Section 3.1) is
+\deqn{S = \sum_{i=1}^N (\hat\beta_i - \hat\beta_{WFE})'
+  \frac{x_i' M x_i}{\hat\sigma_i^2} (\hat\beta_i - \hat\beta_{WFE}).}{
+  S = sum_i (b_i - b_WFE)' (x_i' M x_i / s_i^2) (b_i - b_WFE).}
 
-The adjusted Delta statistic corrects for small sample bias:
-\deqn{\Delta_{adj} = \sqrt{N} \frac{\tilde{S}/N - K}{\sqrt{V}}}
-where \eqn{V = 2K(T-K-K_{partial}-1)/(T-K_{partial}+1)}.
+Two estimators of \eqn{\sigma_i^2} are available:
+\describe{
+\item{\code{variance = "bw"}}{\eqn{\hat\sigma_i^2 = T^{-1} \sum_t
+    \hat\varepsilon_{i,t}^2}, where \eqn{\hat\varepsilon_{i,t}} are
+the residuals of the unit-specific least-squares regression. This
+is the estimator used by Blomquist and Westerlund (2016).}
+\item{\code{variance = "py"}}{\eqn{\tilde\sigma_i^2 = (T - K - 1)^{-1}
+    (y_i - x_i \hat\beta_{FE})' M (y_i - x_i \hat\beta_{FE})}, where
+\eqn{\hat\beta_{FE}} is the pooled fixed-effects estimator. This is
+the estimator used by Pesaran and Yamagata (2008). When further
+variables are partialled out, the degrees of freedom are
+\eqn{T - K - K_{partial}}, which reduces to \eqn{T - K - 1} in the
+standard case.}
+}
+The same choice is used for the weights of \eqn{\hat\beta_{WFE}}, in
+\eqn{S} and in every bootstrap statistic \eqn{S^*}.
 
-Under the null hypothesis of slope homogeneity, both statistics
-are asymptotically standard normal. The bootstrap procedure provides
-finite-sample p-values.
+The bootstrap follows Algorithm BOOT of Blomquist and Westerlund
+(2016): the unit-specific least-squares residuals are resampled in
+blocks of length \code{blocklength} along the time dimension (keeping
+the cross-section intact), pseudo-data are generated under the null
+hypothesis with slopes \eqn{\hat\beta_{WFE}}, and \eqn{S^*} is
+computed exactly as \eqn{S}. The reported bootstrap p-value is the
+proportion of \eqn{S^*} that are at least as large as \eqn{S}.
 
-The function requires a strongly balanced panel (all units observed
-for all time periods).
+For reference, the standardized statistics of Pesaran and Yamagata
+(2008) are also reported with their asymptotic standard normal p-values:
+\deqn{\Delta = \sqrt{N} \frac{N^{-1} S - K}{\sqrt{2K}}, \qquad
+  \Delta_{adj} = \sqrt{N} \frac{N^{-1} S - K}{\sqrt{2K (T - K - 1)/(T + 1)}}.}{
+  Delta = sqrt(N) (S/N - K) / sqrt(2K),
+  Delta_adj = sqrt(N) (S/N - K) / sqrt(2K (T - K - 1)/(T + 1)).}
+These are always computed from \eqn{S} evaluated with the Pesaran and
+Yamagata (2008) variance estimator \eqn{\tilde\sigma_i^2} (returned as
+\code{S_py}), whatever the value of \code{variance}, so that they are
+the statistics of that paper with their asymptotic null distribution;
+\code{variance} governs only \eqn{S} and the bootstrap. Because
+\eqn{\Delta} and \eqn{\Delta_{adj}} are fixed rescalings of
+\code{S_py}, a bootstrap p-value for them would coincide with the
+bootstrap p-value of \eqn{S} when \code{variance = "py"}; only the
+asymptotic p-values are therefore reported for them. \eqn{\Delta_{adj}} is \code{NA} when
+\eqn{T - K - 1 \le 0}.
+
+Rows of \code{data} with missing values in any of the variables used
+(the model, \code{partial}, \code{csa}, \code{id} and \code{time}) are
+dropped before the panel structure is checked. The remaining panel must
+be strongly balanced: every unit must be observed in exactly the same
+set of time periods, and every (id, time) pair must occur once.
+
+Partialling out cross-sectional averages (\code{csa}, \code{csa_lags})
+is an extension not covered by Blomquist and Westerlund (2016). With
+\code{csa_lags > 0} the first \code{csa_lags} periods are dropped for
+all units, so that the estimation sample is a common sample of
+\code{T - csa_lags} periods. If the dependent variable appears
+in \code{csa}, its cross-sectional averages are recomputed from the
+bootstrap pseudo-data in each replication (observed values are used
+for lagged averages that fall before the estimation sample). The
+dependent variable must then be a plain column of \code{data}.
 }
 \examples{
 \donttest{
@@ -111,14 +195,23 @@ result <- xtbhst(y ~ x, data = data_hom, id = "id", time = "time",
                  reps = 199, seed = 42)
 print(result)
 summary(result)
+
+# Pesaran and Yamagata (2008) variance estimator
+result_py <- xtbhst(y ~ x, data = data_hom, id = "id", time = "time",
+                    reps = 199, seed = 42, variance = "py")
 }
 
 }
 \references{
-Blomquist, J., & Westerlund, J. (2015).
+Blomquist, J. and Westerlund, J. (2016).
 Panel bootstrap tests of slope homogeneity.
-\emph{Empirical Economics}, 48(1), 1191-1204.
+\emph{Empirical Economics}, 50(4), 1359-1381.
 \doi{10.1007/s00181-015-0978-z}
+
+Pesaran, M. H. and Yamagata, T. (2008).
+Testing slope homogeneity in large panels.
+\emph{Journal of Econometrics}, 142(1), 50-93.
+\doi{10.1016/j.jeconom.2007.05.010}
 
 Pesaran, M. H. (2006).
 Estimation and inference in large heterogeneous panels with a

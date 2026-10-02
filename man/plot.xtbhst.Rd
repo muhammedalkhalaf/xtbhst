@@ -10,9 +10,11 @@
 \item{x}{An object of class \code{"xtbhst"}.}
 
 \item{which}{Integer vector specifying which plots to produce:
-1 = Bootstrap distribution of Delta,
-2 = Bootstrap distribution of adjusted Delta,
-3+ = Individual coefficient distributions.
+1 = Bootstrap distribution of the statistic S,
+2 = Bootstrap distribution of S on the Delta scale (the fixed
+rescaling \code{sqrt(N) (S/N - K)/sqrt(2K)} of S and S*),
+3+ = Individual coefficient distributions (plot 3 is the first
+regressor, plot 4 the second, and so on).
 Default is \code{c(1, 2)}.}
 
 \item{ask}{Logical. If \code{TRUE}, prompt before each plot (default: \code{TRUE}

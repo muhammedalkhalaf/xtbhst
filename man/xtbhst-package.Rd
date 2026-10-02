@@ -6,7 +6,7 @@
 \title{xtbhst: Bootstrap Slope Heterogeneity Test for Panel Data}
 \description{
 Implements the bootstrap slope heterogeneity test for panel data based on
-Blomquist and Westerlund (2015). The test examines whether slope coefficients
+Blomquist and Westerlund (2016). The test examines whether slope coefficients
 are homogeneous across cross-sectional units in a panel regression.
 }
 \section{Main Function}{
@@ -32,29 +32,35 @@ slope coefficients (H0: homogeneous slopes). Rejection indicates
 significant slope heterogeneity, suggesting that pooled or fixed effects
 estimators may be inappropriate.
 
-The test is based on the Delta statistic:
-\deqn{\Delta = \sqrt{N} \frac{\tilde{S}/N - K}{\sqrt{2K}}}
-
-where \eqn{\tilde{S}} measures the weighted sum of squared deviations
-of individual slope estimates from the weighted pooled estimate.
-
-The bootstrap procedure uses a block bootstrap to preserve serial
-correlation in the residuals.
+The bootstrapped statistic is the Swamy-type statistic \eqn{S} of
+Blomquist and Westerlund (2016), a weighted sum of squared deviations
+of the individual slope estimates from the weighted fixed-effects
+estimate. The bootstrap procedure resamples the unit-specific residuals
+in blocks along the time dimension, which preserves serial correlation
+and cross-sectional dependence. The standardized statistics
+\eqn{\Delta} and \eqn{\Delta_{adj}} of Pesaran and Yamagata (2008)
+are reported with asymptotic normal p-values for reference. See
+\code{\link{xtbhst}} for the formulas.
 }
 
 \section{Cross-Sectional Dependence}{
 
-The package supports handling cross-sectional dependence through
-cross-sectional averages (CSA), following the approach of Pesaran (2006).
-Users can specify variables for which CSA should be computed and
-partialled out.
+The bootstrap itself is robust to cross-sectional dependence. As an
+extension not covered by Blomquist and Westerlund (2016), the package
+can also partial out cross-sectional averages (CSA) of user-specified
+variables, in the spirit of Pesaran (2006).
 }
 
 \references{
-Blomquist, J., & Westerlund, J. (2015).
+Blomquist, J. and Westerlund, J. (2016).
 Panel bootstrap tests of slope homogeneity.
-\emph{Empirical Economics}, 48(1), 1191-1204.
+\emph{Empirical Economics}, 50(4), 1359-1381.
 \doi{10.1007/s00181-015-0978-z}
+
+Pesaran, M. H. and Yamagata, T. (2008).
+Testing slope homogeneity in large panels.
+\emph{Journal of Econometrics}, 142(1), 50-93.
+\doi{10.1016/j.jeconom.2007.05.010}
 
 Pesaran, M. H. (2006).
 Estimation and inference in large heterogeneous panels with a
@@ -76,7 +82,12 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}:  
+\strong{Maintainer}: Muhammad Alkhalaf \email{muhammedalkhalaf@gmail.com} (\href{https://orcid.org/0009-0002-2677-9246}{ORCID}) [copyright holder]
+
+Authors:
+\itemize{
+  \item Muhammad Alkhalaf \email{muhammedalkhalaf@gmail.com} (\href{https://orcid.org/0009-0002-2677-9246}{ORCID}) [copyright holder]
+}
 
 Other contributors:
 \itemize{

@@ -9,22 +9,31 @@
 print.xtbhst <- function(x, digits = 4L, ...) {
   cat("\n")
   cat("Bootstrap test for slope heterogeneity\n")
-  cat("(Blomquist & Westerlund, 2015. Empirical Economics)\n")
+  cat("(Blomquist and Westerlund, 2016, Empirical Economics)\n")
   cat("H0: slope coefficients are homogeneous\n")
-  cat(strrep("-", 45), "\n")
-
-  # Results table
-  cat(sprintf("  %12s   %12s\n", "Delta", "BS p-value"))
-  cat(sprintf("  %12.*f   %12.*f\n", digits, x$delta, digits, x$pval))
-  cat(sprintf("adj. %9.*f   %12.*f\n", digits, x$delta_adj, digits, x$pval_adj))
-  cat(strrep("-", 45), "\n")
+  cat(strrep("-", 52), "\n")
+  cat(sprintf("  %-16s %12s %14s\n", "Statistic", "Value", "p-value"))
+  cat(sprintf("  %-16s %12.*f %14.*f  (bootstrap)\n",
+              "S", digits, x$S, digits, x$pval))
+  cat(sprintf("  %-16s %12.*f %14.*f  (asymptotic)\n",
+              "Delta", digits, x$delta, digits, x$pval_delta_asy))
+  cat(sprintf("  %-16s %12.*f %14.*f  (asymptotic)\n",
+              "Delta (adjusted)", digits, x$delta_adj, digits,
+              x$pval_delta_adj_asy))
+  cat(strrep("-", 52), "\n")
 
   cat("Bootstrap replications:", x$reps, "\n")
   cat("Block length:", x$blocklength, "\n")
+  cat("Variance estimator:",
+      if (identical(x$variance, "py")) "Pesaran and Yamagata (2008)"
+      else "Blomquist and Westerlund (2016)", "\n")
   cat("Panel: N =", x$N, ", T =", x$T, ", K =", x$K, "\n")
 
   if (x$Kpartial > 0L) {
     cat("Variables partialled out:", x$Kpartial, "\n")
+  }
+  if (!is.null(x$n_dropped) && x$n_dropped > 0L) {
+    cat("Rows dropped for missing values:", x$n_dropped, "\n")
   }
 
   invisible(x)
@@ -56,29 +65,42 @@ summary.xtbhst <- function(object, digits = 4L, ...) {
   if (object$Kpartial > 0L) {
     cat("  Partialled variables:", object$Kpartial, "\n")
   }
+  if (!is.null(object$n_dropped) && object$n_dropped > 0L) {
+    cat("  Rows dropped for missing values:", object$n_dropped, "\n")
+  }
   cat("\n")
 
   cat("Test Results:\n")
-  cat(strrep("-", 50), "\n")
-  cat(sprintf("  %-20s %12s %12s\n", "Statistic", "Value", "BS p-value"))
-  cat(strrep("-", 50), "\n")
-  cat(sprintf("  %-20s %12.*f %12.*f\n",
-              "Delta", digits, object$delta, digits, object$pval))
-  cat(sprintf("  %-20s %12.*f %12.*f\n",
-              "Delta (adjusted)", digits, object$delta_adj, digits, object$pval_adj))
-  cat(strrep("-", 50), "\n\n")
+  cat(strrep("-", 62), "\n")
+  cat(sprintf("  %-20s %12s %12s  %s\n", "Statistic", "Value", "p-value",
+              "p-value type"))
+  cat(strrep("-", 62), "\n")
+  cat(sprintf("  %-20s %12.*f %12.*f  %s\n",
+              "S", digits, object$S, digits, object$pval, "bootstrap"))
+  cat(sprintf("  %-20s %12.*f %12.*f  %s\n",
+              "Delta", digits, object$delta, digits, object$pval_delta_asy,
+              "asymptotic"))
+  cat(sprintf("  %-20s %12.*f %12.*f  %s\n",
+              "Delta (adjusted)", digits, object$delta_adj, digits,
+              object$pval_delta_adj_asy, "asymptotic"))
+  cat(strrep("-", 62), "\n\n")
 
   cat("Bootstrap settings:\n")
   cat("  Replications:", object$reps, "\n")
   cat("  Block length:", object$blocklength, "\n")
+  cat("  Variance estimator:",
+      if (identical(object$variance, "py")) "Pesaran and Yamagata (2008)"
+      else "Blomquist and Westerlund (2016)", "\n")
   cat("\n")
 
-  # Interpretation
+  # Interpretation, based on the bootstrap p-value of S
   alpha <- 0.05
-  if (object$pval < alpha || object$pval_adj < alpha) {
-    cat("Conclusion (at 5% level): Reject H0 - evidence of slope heterogeneity.\n")
+  if (object$pval < alpha) {
+    cat("Conclusion (bootstrap test at 5% level): Reject H0 - evidence of ",
+        "slope heterogeneity.\n", sep = "")
   } else {
-    cat("Conclusion (at 5% level): Fail to reject H0 - slopes appear homogeneous.\n")
+    cat("Conclusion (bootstrap test at 5% level): Fail to reject H0 - ",
+        "slopes appear homogeneous.\n", sep = "")
   }
   cat("\n")
 
@@ -100,15 +122,17 @@ summary.xtbhst <- function(object, digits = 4L, ...) {
   cat("\n")
 
   cat("Weighted FE (pooled) estimates:\n")
-  fe_df <- data.frame(Estimate = round(object$beta_fe, digits))
+  fe_df <- data.frame(Estimate = round(as.vector(object$beta_fe), digits))
   rownames(fe_df) <- cnames
   print(fe_df)
 
   invisible(list(
+    S = object$S,
+    pval = object$pval,
     delta = object$delta,
     delta_adj = object$delta_adj,
-    pval = object$pval,
-    pval_adj = object$pval_adj,
+    pval_delta_asy = object$pval_delta_asy,
+    pval_delta_adj_asy = object$pval_delta_adj_asy,
     beta_summary = beta_summary,
     beta_fe = object$beta_fe
   ))
@@ -121,9 +145,11 @@ summary.xtbhst <- function(object, digits = 4L, ...) {
 #'
 #' @param x An object of class \code{"xtbhst"}.
 #' @param which Integer vector specifying which plots to produce:
-#'   1 = Bootstrap distribution of Delta,
-#'   2 = Bootstrap distribution of adjusted Delta,
-#'   3+ = Individual coefficient distributions.
+#'   1 = Bootstrap distribution of the statistic S,
+#'   2 = Bootstrap distribution of S on the Delta scale (the fixed
+#'   rescaling \code{sqrt(N) (S/N - K)/sqrt(2K)} of S and S*),
+#'   3+ = Individual coefficient distributions (plot 3 is the first
+#'   regressor, plot 4 the second, and so on).
 #'   Default is \code{c(1, 2)}.
 #' @param ask Logical. If \code{TRUE}, prompt before each plot (default: \code{TRUE}
 #'   if multiple plots and interactive session).
@@ -143,20 +169,21 @@ plot.xtbhst <- function(x, which = c(1L, 2L), ask = NULL, ...) {
 
   if (1L %in% which) {
     .plot_bootstrap_dist(
-      x$delta_stars, x$delta,
-      main = "Bootstrap Distribution: Delta",
-      xlab = "Delta",
-      observed_label = sprintf("Observed = %.3f", x$delta),
+      x$S_stars, x$S,
+      main = "Bootstrap Distribution: S",
+      xlab = "S",
+      observed_label = sprintf("Observed = %.3f", x$S),
       ...
     )
   }
 
   if (2L %in% which) {
+    obs <- sqrt(x$N) * (x$S / x$N - x$K) / sqrt(2 * x$K)
     .plot_bootstrap_dist(
-      x$delta_adj_stars, x$delta_adj,
-      main = "Bootstrap Distribution: Adjusted Delta",
-      xlab = "Adjusted Delta",
-      observed_label = sprintf("Observed = %.3f", x$delta_adj),
+      x$delta_stars, obs,
+      main = "Bootstrap Distribution: S on the Delta scale",
+      xlab = "sqrt(N) (S/N - K) / sqrt(2K)",
+      observed_label = sprintf("Observed = %.3f", obs),
       ...
     )
   }

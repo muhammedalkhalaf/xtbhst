@@ -1,7 +1,6 @@
-# xtbhst 1.1.0
+## xtbhst 1.1.0
 
-This release corrects the computation of the test statistic and several
-related defects; the version on CRAN is 1.0.2.
+This release corrects the computations below; the version on CRAN is 1.0.2.
 
 - Unit-specific error variance. The previous versions divided the pooled
   fixed-effects residual sum of squares of each unit by T minus the number
@@ -56,22 +55,10 @@ related defects; the version on CRAN is 1.0.2.
   that of Delta.
 - Removed the unused suggested dependency on 'plm'.
 
-# xtbhst 1.0.2
+## Test environments
 
-- Removed Jan Ditzen from the contributors list at his explicit request.
-- The acknowledgment of the original Stata `xthst` command now appears as a narrative reference in `README.md` only.
+* Ubuntu 24.04, R 4.3.3 and R-devel, R CMD check --as-cran
 
-# xtbhst 1.0.1
+## R CMD check results
 
-- Documentation and metadata updates.
-
-# xtbhst 1.0.0
-
-- Initial CRAN release
-- Implements bootstrap slope heterogeneity test of Blomquist and Westerlund (2016) [citation corrected in 1.1.0]
-- Features:
-  - Block bootstrap for panel data
-  - Standard and adjusted Delta statistics
-  - Support for partialling out control variables
-  - Cross-sectional averages for handling cross-sectional dependence
-  - Diagnostic plots for bootstrap distributions
+0 errors | 0 warnings | 0 notes
